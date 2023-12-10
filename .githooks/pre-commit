@@ -1,0 +1,42 @@
+#!/bin/bash
+
+echo -e "\033[1mPre-Commit Git Hooks\033[0m"
+
+# This will retrieve all of the .go files that have been 
+# changed since the last commit
+STAGED_GO_FILES=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go')
+
+# We can check to see if this is empty
+if [[ $STAGED_GO_FILES == "" ]]; then
+    echo -e "\033[90mNo Golang files to update\033[0m"
+    exit 0
+fi
+
+# Otherwise we can do stuff with these changed go files
+for file in $STAGED_GO_FILES
+do
+  echo -e "\033[36mFormatting\033[0m $file"
+
+  # Run goimports on staged file
+  goimports -w $file
+
+  # Format out file
+  go fmt $file
+
+  # Add any potential changes from our formatting to the 
+  # commit
+  git add $file
+done
+
+echo -e "\033[36mLint unsing golangci-lint\033[0m"
+lint_path=$( command -v golangci-lint ) && [ -x "$lint_path" ]
+if [[ ! $lint_path ]]; then
+  echo -e "\033[91mCommit failed!\033[0m"
+  exit 1
+fi
+
+golangci-lint run
+if [[ $? != 0 ]]; then
+  echo -e "\033[91mCommit failed!\033[0m"
+  exit 1
+fi

@@ -1,0 +1,116 @@
+variables:
+  PROJECT_NAME: be-kredit-pintar
+  REPO_NAME: /asuransi/kredit-pintar.git #add later
+  GIT_SUBMODULE_STRATEGY: recursive
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  image: golangci/golangci-lint:v1.53-alpine
+  extends: .go-cache
+  script:
+  #  - go vet $(go list ./... | grep -v /vendor/)
+  #  - go test -race $(go list ./... | grep -v /vendor/)
+  #  - go test ./... -coverprofile=coverage.txt -covermode count
+  #  - go get github.com/boumenot/gocover-cobertura
+  #  - go run github.com/boumenot/gocover-cobertura < coverage.txt > coverage.xml
+  #  - ls -la
+  #  - golangci-lint run app -v
+    - golangci-lint run --timeout 10m0s
+    - echo "Tested"
+  #artifacts:
+  #  reports:
+  #    coverage_report:
+  #      coverage_format: cobertura
+  #      path: coverage.xml
+  only:
+    - staging
+    - dev
+  tags:
+    - staging
+
+build:
+  stage: build
+  image: docker:stable
+  services:
+    - docker:stable-dind
+  rules:
+    - if: $CI_COMMIT_TAG || ($CI_COMMIT_BRANCH == "staging") || ($CI_COMMIT_BRANCH == "master") || ($CI_COMMIT_BRANCH == "main")
+  before_script:
+    - echo $HARBOR_PASSWORD | docker login -u $HARBOR_USERNAME $HARBOR_HOST --password-stdin
+  script:
+    - echo $CI_COMMIT_REF_NAME
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" == "master" ]] || [[ "$CI_COMMIT_REF_NAME" == "main" ]]; then
+        tag="stable"
+        echo "Build master/main branch, tag with stable"
+      elif [[ "$CI_COMMIT_REF_NAME" == "staging" ]]; then
+        tag="staging"
+        echo "Build staging branch, tag with staging"
+      else
+        tag="$CI_COMMIT_REF_NAME"
+        echo "Build $CI_COMMIT_REF_NAME, tag with $CI_COMMIT_REF_NAME"
+      fi
+    - docker build -t $HARBOR_HOST/$HARBOR_PROJECT/$PROJECT_NAME:${tag} .
+    - echo "Image built"
+    - docker push $HARBOR_HOST/$HARBOR_PROJECT/$PROJECT_NAME:${tag}
+    - echo "Pushed"
+  tags:
+    - staging
+
+deploy:
+  stage: deploy
+  image: cdrx/rancher-gitlab-deploy
+  script:
+    - upgrade --rancher-url $RANCHER_URL --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --stack Apps-Service-Kredit-Pintar --service $PROJECT_NAME --new-image $HARBOR_HOST/$HARBOR_PROJECT/$PROJECT_NAME:staging --create
+    - echo "Deployed"
+  only:
+    - staging
+  tags:
+    - staging
+
+build-old:
+  stage: build
+  cache:
+    key: ${PROJECT_NAME}
+    paths:
+      - ${PROJECT_NAME}
+  script:
+    - pwd
+    - make build
+    - echo "Built"
+  only:
+    - dev
+  tags:
+    - ssh
+
+deploy-old:
+  stage: deploy
+  dependencies:
+    - build
+  cache:
+    key: ${PROJECT_NAME}
+    paths:
+      - ${PROJECT_NAME}
+  script:
+    - ls -la
+    - cp db/migration/* /usr/local/etc/${PROJECT_NAME}-migration
+    - systemctl stop ${PROJECT_NAME}
+    - cp ${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+    - systemctl start ${PROJECT_NAME}
+    - echo "Deployed"
+  only:
+    - dev
+  tags:
+    - ssh

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo -e "\033[1mCommit-Msg Git Hooks\033[0m"
+
+# Validate commit message must have ticket number
+echo -e "\033[36mCheck commit message\033[0m $file"
+commit_msg=$(cat "$1")
+echo $commit_msg
+if [[ ! $commit_msg =~ ^#[a-zA-Z0-9]+ ]]; then 
+  echo -e "\033[91mCommit message must follow rule: #{ticket_id} {comment}\033[0m"
+  exit 1
+fi
