@@ -288,11 +288,20 @@ func (u *actionUsecase) PatchBilling(ctx context.Context, req int, token string)
 	if err != nil {
 		return
 	}
-	out, err := u.actionMySQLRepo.CheckValidateBilling(ctx, "id", strconv.Itoa(int(req)))
+	out, err := u.actionMySQLRepo.CheckValidateBilling(ctx, "consumer_id", strconv.Itoa(int(outConsumer.ID)))
 	if err != nil {
 		return
 	}
 	if out < 1 {
+		err = errors.New("not found")
+		return
+	}
+
+	outs, err := u.actionMySQLRepo.CheckValidateBilling(ctx, "id", strconv.Itoa(int(req)))
+	if err != nil {
+		return
+	}
+	if outs < 1 {
 		err = errors.New("not found")
 		return
 	}

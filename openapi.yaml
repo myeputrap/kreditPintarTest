@@ -386,33 +386,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /billing:
-    patch:
-      tags:
-        - Billing
-      summary: Pay installment recruiter details
-      description: Pay installment details 
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID
-          schema:
-            type: integer 
-      responses:
-        '200':
-          description: Success
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
     get:
       tags:
         - Billing
@@ -508,6 +481,35 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /billing/{id}:
+    patch:
+      tags:
+        - Billing
+      summary: Pay installment recruiter details
+      description: Pay installment details 
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID
+          schema:
+            type: integer 
+      responses:
+        '200':
+          description: Success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+     
 components:
   schemas:
     RequestLogin:

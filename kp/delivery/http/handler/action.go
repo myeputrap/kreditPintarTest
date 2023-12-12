@@ -55,6 +55,9 @@ func (ah *ActionHandler) GetConsumer(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you filled is incorrect.")
 		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  PostLogin %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -100,6 +103,9 @@ func (ah *ActionHandler) GetBilling(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you filled is incorrect.")
 		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  PostLogin %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -136,6 +142,9 @@ func (ah *ActionHandler) PostConsumer(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "data exist") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you input is exist.")
 		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  Post %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -153,6 +162,9 @@ func (ah *ActionHandler) GetConsumerDetail(c *fiber.Ctx) (err error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you filled is incorrect.")
+		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 		}
 		log.Errorf("error  PostLogin %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
@@ -186,7 +198,9 @@ func (ah *ActionHandler) PatchBilling(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "consumer id not valid") {
 			return c.Status(fasthttp.StatusBadRequest).SendString(err.Error())
 		}
-
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  Post %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -224,7 +238,9 @@ func (ah *ActionHandler) PostCreditCards(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "consumer id not valid") {
 			return c.Status(fasthttp.StatusBadRequest).SendString(err.Error())
 		}
-
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  Post %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -268,7 +284,9 @@ func (ah *ActionHandler) PostTransactionDetail(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "consumer id not valid") {
 			return c.Status(fasthttp.StatusBadRequest).SendString(err.Error())
 		}
-
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error  Post %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -317,6 +335,9 @@ func (ah *ActionHandler) GetCreditCards(c *fiber.Ctx) (err error) {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you filled is incorrect.")
 		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
+		}
 		log.Errorf("error   %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 	}
@@ -336,6 +357,9 @@ func (ah *ActionHandler) GetCreditCardDetail(c *fiber.Ctx) (err error) {
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			return c.Status(fasthttp.StatusBadRequest).SendString("The data you filled is incorrect.")
+		}
+		if strings.Contains(err.Error(), "not found") {
+			return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)
 		}
 		log.Errorf("error   %s", err.Error())
 		return helper.HTTPSimpleResponse(c, fasthttp.StatusInternalServerError)

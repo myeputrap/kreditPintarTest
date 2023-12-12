@@ -544,7 +544,7 @@ func (ar *mysqlActionRepository) UpdateCreditBalance(ctx context.Context, bill f
 }
 
 func (ar *mysqlActionRepository) CountCreditBalance(ctx context.Context, id string) (res float64, err error) {
-	query := `SELECT COUNT(bill_amount) FROM billing WHERE consumer_id = ? AND status = Pending`
+	query := `SELECT SUM(bill_amount) FROM billing WHERE consumer_id = ? AND status = ?`
 
 	log.Debug("Query : " + query)
 
@@ -555,7 +555,7 @@ func (ar *mysqlActionRepository) CountCreditBalance(ctx context.Context, id stri
 		log.Error(err)
 		return
 	}
-	row := stmt.QueryRowContext(ctx, id)
+	row := stmt.QueryRowContext(ctx, id, "Pending")
 	err = row.Scan(&res)
 	if err != nil {
 		log.Error("error in row scan: ", err)
@@ -566,7 +566,7 @@ func (ar *mysqlActionRepository) CountCreditBalance(ctx context.Context, id stri
 }
 
 func (ar *mysqlActionRepository) PatchBilling(ctx context.Context, id string) (err error) {
-	query := `UPDATE status SET status = ?, dtm_upd = NOW() WHERE id = ?`
+	query := `UPDATE billing SET status = ?, dtm_upd = NOW() WHERE id = ?`
 	log.Debug(query)
 
 	ar.mu.Lock()

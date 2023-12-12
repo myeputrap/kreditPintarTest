@@ -35,7 +35,7 @@ func RouterAPI(app *fiber.App, auth domain.AuthUsecase, authAction domain.Action
 	aut.Get("/credit-card", handlerAuthorization.MiddlewareAdmin(), handlerAction.GetCreditCards)
 	aut.Get("/credit-card/:id", handlerAuthorization.MiddlewareAdmin(), handlerAction.GetCreditCardDetail)
 	aut.Post("/transaction/credit", handlerAuthorization.MiddlewareConsumer(), handlerAction.PostTransactionDetail)
-	aut.Patch("/biling", handlerAuthorization.MiddlewareConsumer(), handlerAction.PatchBilling)
+	aut.Patch("/billing/:id", handlerAuthorization.MiddlewareConsumer(), handlerAction.PatchBilling)
 	aut.Get("/billing", handlerAuthorization.MiddlewareConsumer(), handlerAction.GetBilling)
 	log.Debug(viper.GetInt("rate_limit.limiter_max"))
 	log.Debug(time.Duration(viper.GetInt("rate_limit.limiter_expiration")) * time.Second)
