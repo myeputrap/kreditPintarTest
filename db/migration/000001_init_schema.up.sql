@@ -78,3 +78,6 @@ CREATE TABLE `admin` (
     `password`          VARCHAR(100)    NOT NULL,
     PRIMARY KEY (`user_name`)
 );
+
+INSERT INTO `admin` (`user_name`, `password`)
+VALUES ('admin', '$2a$12$6B4sCTeUIZ9ctISGwb.6tODSgRUGLwQWQGPo0QqH6mdfkIyk55x8K');
