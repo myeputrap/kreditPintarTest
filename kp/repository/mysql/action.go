@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"goKreditPintar/domain"
+	"sync"
+
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -12,11 +14,15 @@ import (
 
 type mysqlActionRepository struct {
 	Conn *sql.DB
+	mu   sync.Mutex
 }
 
 // NewMySQLActionRepository is constructor of MySQL repository
 func NewMySQLActionRepository(Conn *sql.DB) domain.ActionMySQLRepository {
-	return &mysqlActionRepository{Conn}
+	return &mysqlActionRepository{
+		Conn: Conn,
+		mu:   sync.Mutex{},
+	}
 }
 
 func (db *mysqlActionRepository) GetConsumer(ctx context.Context, req domain.GetAllConsumerRequest) (res []domain.Consumer, err error) {
@@ -54,7 +60,8 @@ func (db *mysqlActionRepository) GetConsumer(ctx context.Context, req domain.Get
 	}
 
 	log.Debug(query)
-
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	rows, err := db.Conn.QueryContext(ctx, query, params...)
 	if err != nil {
 		log.Error(err)
@@ -114,7 +121,8 @@ func (db *mysqlActionRepository) GetCreditCard(ctx context.Context, req domain.G
 	}
 
 	log.Debug(query)
-
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	rows, err := db.Conn.QueryContext(ctx, query, params...)
 	if err != nil {
 		log.Error(err)
@@ -169,7 +177,8 @@ func (db *mysqlActionRepository) GetBilling(ctx context.Context, req domain.GetA
 	}
 
 	log.Debug(query)
-
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	rows, err := db.Conn.QueryContext(ctx, query, params...)
 	if err != nil {
 		log.Error(err)
@@ -189,7 +198,7 @@ func (db *mysqlActionRepository) GetBilling(ctx context.Context, req domain.GetA
 	return
 }
 
-func (ar *mysqlActionRepository) CountConsumer(ctx context.Context, req domain.GetAllConsumerRequest) (sum int64, err error) {
+func (db *mysqlActionRepository) CountConsumer(ctx context.Context, req domain.GetAllConsumerRequest) (sum int64, err error) {
 	query := `SELECT COUNT(id) FROM credit_cards WHERE`
 	var params []interface{}
 
@@ -213,8 +222,9 @@ func (ar *mysqlActionRepository) CountConsumer(ctx context.Context, req domain.G
 	if query[len(query)-3:] == "AND" {
 		query = query[:len(query)-3]
 	}
-
-	stmt, err := ar.Conn.PrepareContext(ctx, query)
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
 		return
@@ -260,6 +270,8 @@ func (ar *mysqlActionRepository) CountCreditCard(ctx context.Context, req domain
 		query = query[:len(query)-3]
 	}
 	log.Debug(query)
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
@@ -301,6 +313,8 @@ func (ar *mysqlActionRepository) CountBilling(ctx context.Context, req domain.Ge
 		query = query[:len(query)-3]
 	}
 
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
@@ -321,7 +335,8 @@ func (ar *mysqlActionRepository) CheckValidate(ctx context.Context, coloumn stri
 	query := `SELECT COUNT(id) FROM consumers WHERE ` + coloumn + ` = ?`
 
 	log.Debug("Query : " + query)
-
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
@@ -346,7 +361,8 @@ func (ar *mysqlActionRepository) CheckValidateCC(ctx context.Context, coloumn st
 	query := `SELECT COUNT(id) FROM credit_cards WHERE ` + coloumn + ` = ?`
 
 	log.Debug("Query : " + query)
-
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
@@ -366,6 +382,8 @@ func (db *mysqlActionRepository) PostConsumer(ctx context.Context, req domain.Co
 	query := `INSERT INTO consumers (nik, name, birth_date, place_of_birth, phone_number, email, salary, dtm_crt, dtm_upd)
 		VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -383,6 +401,8 @@ func (db *mysqlActionRepository) GetConsumerDetail(ctx context.Context, req int)
 	query := `SELECT id, nik, name, place_of_birth, birth_date, salary, email, phone_number, dtm_crt, dtm_upd FROM consumers WHERE id = ?`
 	log.Debug(query)
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -399,6 +419,8 @@ func (db *mysqlActionRepository) GetCreditCardDetail(ctx context.Context, req in
 	query := `SELECT id, consumer_id, card_number, expiration_date, cvv, credit_limit, current_balance, dtm_crt, dtm_upd FROM credit_cards WHERE id = ?`
 	log.Debug(query)
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -416,6 +438,8 @@ func (db *mysqlActionRepository) GetConsumerByParameter(ctx context.Context, col
 	query := `SELECT id, nik, name, place_of_birth, birth_date, salary, email, phone_number, dtm_crt, dtm_upd FROM consumers WHERE ` + coloumn + ` = ?`
 	log.Debug(query)
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -433,6 +457,8 @@ func (db *mysqlActionRepository) PostConsumerCreditCard(ctx context.Context, req
 	query := `INSERT INTO credit_cards (consumer_id, card_number, expiration_date, cvv, credit_limit, current_balance, dtm_crt, dtm_upd)
 		VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -450,6 +476,9 @@ func (db *mysqlActionRepository) PostTransactionCredit(ctx context.Context, req 
 	query := `INSERT INTO transactions (consumer_id, contract_number, otr, admin_fee, installment_count, interest_amount, purchase_amount, asset_name, status, dtm_crt, dtm_upd)
 		VALUES (?, ?, ?, ?, ?, ?, ?,?, ?, NOW(), NOW())`
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
+
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -460,11 +489,12 @@ func (db *mysqlActionRepository) PostTransactionCredit(ctx context.Context, req 
 		return 0, err
 	}
 
-	// Retrieve the last inserted ID
 	lastID, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
+
+	defer db.mu.Unlock()
 
 	return lastID, nil
 
@@ -474,6 +504,8 @@ func (db *mysqlActionRepository) PostBillingCredit(ctx context.Context, req doma
 	query := `INSERT INTO billing (consumer_id, transaction_id, bill_amount, due_date, status, dtm_crt, dtm_upd)
            VALUES (?, ?, ?, ?, ?,NOW(), NOW())`
 
+	db.mu.Lock()
+	defer db.mu.Unlock()
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -491,6 +523,8 @@ func (ar *mysqlActionRepository) UpdateCreditBalance(ctx context.Context, bill f
 	query := `UPDATE credit_cards SET current_balance = ?, dtm_upd = NOW() WHERE consumer_id = ?`
 	log.Debug(query)
 
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -514,6 +548,8 @@ func (ar *mysqlActionRepository) CountCreditBalance(ctx context.Context, id stri
 
 	log.Debug("Query : " + query)
 
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
@@ -533,6 +569,8 @@ func (ar *mysqlActionRepository) PatchBilling(ctx context.Context, id string) (e
 	query := `UPDATE status SET status = ?, dtm_upd = NOW() WHERE id = ?`
 	log.Debug(query)
 
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -555,6 +593,9 @@ func (ar *mysqlActionRepository) CheckValidateBilling(ctx context.Context, colou
 	query := `SELECT COUNT(id) FROM billing WHERE ` + coloumn + ` = ?`
 
 	log.Debug("Query : " + query)
+
+	ar.mu.Lock()
+	defer ar.mu.Unlock()
 
 	stmt, err := ar.Conn.PrepareContext(ctx, query)
 	if err != nil {
