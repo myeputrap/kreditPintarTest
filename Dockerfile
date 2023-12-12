@@ -10,4 +10,4 @@ RUN apk add --no-cache tzdata
 WORKDIR /app/
 COPY --from=0 /go/src/be-kredit-pintar/be-kredit-pintar .
 COPY --from=0 /go/src/be-kredit-pintar/db/migration ./db/migration
-CMD ["./be-service-insurance-auth"]
+CMD ["./be-kredit-pintar"]

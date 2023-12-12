@@ -23,11 +23,11 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
-
+	"github.com/ansrivas/fiberprometheus/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -120,10 +120,11 @@ func main() {
 	log.Info("Redis connection established")
 
 	repoMySQLAuth := _RepoMySQLAuth.NewMySQLAuthRepository(dbConn)
+	repoMySQLAction := _RepoMySQLAuth.NewMySQLActionRepository(dbConn)
 	repoRedisAuth := _RepoRedisAuth.NewRedisAuthRepository(dbRedis)
 
 	usecaseAuth := _UsecaseAuth.NewAuthUsecase(repoMySQLAuth, repoRedisAuth)
-
+	usecaseAction := _UsecaseAuth.NewActionUsecase(repoMySQLAction, repoRedisAuth)
 	// Initialize HTTP web framework
 	app := fiber.New(fiber.Config{
 		Prefork:       viper.GetBool("server.prefork"),
@@ -152,10 +153,16 @@ func main() {
 	app.Get(viper.GetString("server.base_path")+"/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
+
+	prometheus := fiberprometheus.New("be-service-kredit-pintar")
+	prometheus.RegisterAt(app, "/metrics")
+
+	app.Use(prometheus.Middleware)
+
 	if viper.GetBool("api_spec") {
 		_DeliveryHTTPAuth.RouterOpenAPI(app)
 	}
-	_DeliveryHTTPAuth.RouterAPI(app, usecaseAuth)
+	_DeliveryHTTPAuth.RouterAPI(app, usecaseAuth, usecaseAction)
 
 	// go func() {
 	if err := app.Listen(":" + viper.GetString("server.port")); err != nil {

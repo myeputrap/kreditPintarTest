@@ -20,7 +20,7 @@ func NewMySQLAuthRepository(Conn *sql.DB) domain.AuthMySQLRepository {
 
 func (db *mysqlAuthRepository) fetch(ctx context.Context, query string, args ...interface{}) (result []domain.Client, err error) {
 	log.Debug(query)
-	log.Debug(args)
+
 	rows, err := db.Conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		log.Error(err)
@@ -39,19 +39,11 @@ func (db *mysqlAuthRepository) fetch(ctx context.Context, query string, args ...
 		t := domain.Client{}
 		err = rows.Scan(
 			&t.ID,
-			&t.InsuranceNo,
 			&t.NIK,
 			&t.Name,
 			&t.BirthDate,
-			&t.ProvID,
-			&t.KabID,
-			&t.KecID,
-			&t.KelID,
-			&t.Address,
 			&t.PhoneNumber,
 			&t.Email,
-			&t.Active,
-			&t.Log,
 			&t.DtmCrt,
 			&t.DtmUpd,
 		)
@@ -66,7 +58,7 @@ func (db *mysqlAuthRepository) fetch(ctx context.Context, query string, args ...
 }
 
 func (db *mysqlAuthRepository) GetAllClient(ctx context.Context, page, limit int64, sort, order string, calegId ...string) (client []domain.Client, err error) {
-	query := `SELECT id, insurance_no, nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd FROM client`
+	query := `SELECT id,  nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd FROM client`
 
 	if sort != "" {
 		query += " ORDER BY " + sort
@@ -95,7 +87,7 @@ func (db *mysqlAuthRepository) GetAllClient(ctx context.Context, page, limit int
 }
 
 func (db *mysqlAuthRepository) GetClientByID(ctx context.Context, id int64) (client domain.Client, err error) {
-	query := `SELECT id, insurance_no, nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd FROM client WHERE id = ?`
+	query := `SELECT id,  nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd FROM client WHERE id = ?`
 
 	log.Debug(query + " | " + strconv.FormatInt(id, 10))
 	list, err := db.fetch(ctx, query, id)
@@ -113,11 +105,9 @@ func (db *mysqlAuthRepository) GetClientByID(ctx context.Context, id int64) (cli
 }
 
 func (db *mysqlAuthRepository) InsertClient(ctx context.Context, client domain.Client) (err error) {
-	query := `INSERT INTO client(insurance_no, nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd) 
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`
+	query := `INSERT INTO client( nik, name, birth_date, prov_id, kab_id, kec_id, kel_id, address, phone_number, email, active, log, dtm_crt, dtm_upd) 
+			 VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`
 
-	birthDate := client.BirthDate.Format("2006-01-02")
-	log.Debug(query + " | " + client.InsuranceNo + " | " + client.NIK + " | " + client.Name + " | " + birthDate + " | " + strconv.FormatInt(int64(client.ProvID), 10) + " | " + strconv.FormatInt(int64(client.KabID), 10) + " | " + strconv.FormatInt(int64(client.KecID), 10) + " | " + strconv.FormatInt(int64(client.KelID), 10) + " | " + client.Address + " | " + client.PhoneNumber + " | " + *client.Email + " | " + strconv.FormatBool(client.Active) + " | " + *client.Log)
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return err
@@ -125,19 +115,11 @@ func (db *mysqlAuthRepository) InsertClient(ctx context.Context, client domain.C
 
 	res, err := stmt.ExecContext(
 		ctx,
-		client.InsuranceNo,
 		client.NIK,
 		client.Name,
 		client.BirthDate,
-		client.ProvID,
-		client.KabID,
-		client.KecID,
-		client.KelID,
-		client.Address,
 		client.PhoneNumber,
 		client.Email,
-		client.Active,
-		client.Log,
 	)
 	if err != nil {
 		return
@@ -152,37 +134,40 @@ func (db *mysqlAuthRepository) InsertClient(ctx context.Context, client domain.C
 	return
 }
 
-func (db *mysqlAuthRepository) UpdateClient(ctx context.Context, client domain.Client, audit string) (err error) {
-	query := `UPDATE client SET insurance_no = ?, nik = ?, name = ?, birth_date = ?, prov_id = ?, kab_id = ?, kec_id = ?, kel_id = ?, address = ?, phone_number = ?, email = ?, active = ?, log = ?, dtm_upd = NOW() WHERE id = ?`
+func (db *mysqlAuthRepository) LoginAdmin(ctx context.Context, req domain.LoginRequest) (res domain.IsAdminResponse, err error) {
+	query := `SELECT user_name, password  FROM admin WHERE user_name = ?`
+	log.Debug(query)
 
-	birthDate := client.BirthDate.Format("2006-01-02")
-	log.Debug(query + " | " + client.InsuranceNo + " | " + client.NIK + " | " + client.Name + " | " + birthDate + " | " + strconv.FormatInt(int64(client.ProvID), 10) + " | " + strconv.FormatInt(int64(client.KabID), 10) + " | " + strconv.FormatInt(int64(client.KecID), 10) + " | " + strconv.FormatInt(int64(client.KelID), 10) + " | " + client.Address + " | " + client.PhoneNumber + " | " + *client.Email + " | " + strconv.FormatBool(client.Active) + " | " + *client.Log + " | " + strconv.FormatInt(int64(client.ID), 10))
 	stmt, err := db.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		log.Error(err)
 		return
 	}
 
-	_, err = stmt.ExecContext(
-		ctx,
-		client.InsuranceNo,
-		client.NIK,
-		client.Name,
-		client.BirthDate,
-		client.ProvID,
-		client.KabID,
-		client.KecID,
-		client.KelID,
-		client.Address,
-		client.PhoneNumber,
-		client.Email,
-		client.Active,
-		client.Log,
-		client.ID,
-	)
+	row := stmt.QueryRowContext(ctx, req.Username)
+	err = row.Scan(&res.Username, &res.Password)
 	if err != nil {
-		log.Error(err)
+		log.Error("error in row scan: ", err)
 		return
 	}
+
+	return
+
+}
+
+func (db *mysqlAuthRepository) LoginConsumer(ctx context.Context, req domain.LoginRequest) (res domain.Client, err error) {
+	query := `SELECT id, nik, name, birth_date, phone_number, email, dtm_crt, dtm_upd FROM consumers WHERE phone_number = ? and email = ?`
+
+	list, err := db.fetch(ctx, query, req.PhoneNumber, req.Email)
+	if err != nil {
+		return
+	}
+
+	if len(list) > 0 {
+		res = list[0]
+	} else {
+		err = sql.ErrNoRows
+	}
+
 	return
 }

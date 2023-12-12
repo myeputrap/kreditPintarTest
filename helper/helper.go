@@ -3,8 +3,10 @@ package helper
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -228,4 +230,46 @@ func GetClientIP(c *fiber.Ctx) (out string, err error) {
 	clientIP := c.IP()
 	out = clientIP
 	return
+}
+
+func GenerateValidCardNumber() string {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	cardLength := 16
+
+	var cardNumber string
+	for i := 0; i < cardLength-1; i++ {
+		cardNumber += strconv.Itoa(r.Intn(9)) // Append a random digit
+	}
+
+	var sum int
+	isSecond := false
+	for i := len(cardNumber) - 1; i >= 0; i-- {
+		digit, _ := strconv.Atoi(string(cardNumber[i]))
+
+		if isSecond {
+			digit *= 2
+			if digit > 9 {
+				digit -= 9
+			}
+		}
+
+		sum += digit
+		isSecond = !isSecond
+	}
+
+	checksum := (10 - sum%10) % 10
+
+	return cardNumber + strconv.Itoa(checksum)
+}
+
+func FormatCardNumber(cardNumber string) string {
+	var formattedCardNumber strings.Builder
+	for i, digit := range cardNumber {
+		if i > 0 && i%4 == 0 {
+			formattedCardNumber.WriteString("-")
+		}
+		formattedCardNumber.WriteRune(digit)
+	}
+	return formattedCardNumber.String()
 }

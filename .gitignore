@@ -1,7 +1,11 @@
+# Ignore all YAML files except openapi.yaml
+*.yaml
+!openapi.yaml
+
+# Add other rules as needed
 .vscode
 .DS_Store
 be-kredit-pintar
 *.exe
 config.yaml
-*.yaml
 temp

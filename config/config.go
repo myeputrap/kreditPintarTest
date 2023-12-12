@@ -150,7 +150,7 @@ type Middleware struct {
 // Default config
 var defaultConfig = &Config{
 	Server: Server{
-		Port:          "2888",
+		Port:          "4139",
 		Prefork:       false,
 		StrictRouting: false,
 		CaseSensitive: false,
@@ -168,10 +168,10 @@ var defaultConfig = &Config{
 	MySQL: MySQL{
 		Host:        "localhost",
 		Port:        "3306",
-		Database:    "insuranceauth",
+		Database:    "kp",
 		User:        "root",
 		Password:    "",
-		PathMigrate: "file://db/migration",
+		PathMigrate: "file://../db/migration",
 	},
 	Redis: Redis{
 		Host:          "localhost",
@@ -180,16 +180,6 @@ var defaultConfig = &Config{
 		Username:      "",
 		Password:      "",
 		Database:      0,
-	},
-	GRPC: GRPC{
-		DPTService: HostPort{
-			Host: "localhost",
-			Port: "51999",
-		},
-		Init:            5,
-		Capacity:        50,
-		IdleDuration:    60,
-		MaxLifeDuration: 60,
 	},
 	RateLimit: RateLimit{
 		LimiterMax:               10,

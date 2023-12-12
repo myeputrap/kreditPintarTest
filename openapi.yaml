@@ -1,0 +1,692 @@
+openapi: 3.0.0
+info:
+  title: service-kredit-pintar
+  description: Service Kredit Pintar
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:4139
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Authentication
+  - name: Consumer
+    description: Consumer
+
+paths:
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: Login Consumer or Admin
+      description: Login Consumer or Admin
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestLogin'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseLogin'
+              examples:
+                activation:
+                  summary: Activation and Normal Login
+                  value:
+                    token: iiuhdfs98UOYWOUYg86de873i09hio
+                    need_validation: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /logout:
+    delete:
+      tags:
+        - Authentication
+      summary: Logout
+      description: Logout from KTA Asuransi system
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /consumer:
+    get:
+      tags:
+        - Consumer
+      summary: Get consumer list (BACKOFFICE)
+      description: Get consumer list from backoffice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit
+          schema:
+            type: integer
+        - name: name
+          in: query
+          description: Search name
+          schema:
+            type: string
+        - name: min_salary
+          in: query
+          description: Search min salary
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Search email
+          schema:
+            type: string        
+        - name: sort
+          in: query
+          description: Sort by
+          schema:
+            type: string
+            enum:
+              - dtm_crt
+              - dtm_upd
+        - name: order
+          in: query
+          description: Order (ascending or descending)
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    properties:                      
+                      total_data:
+                        type: integer
+                        example: 543
+                      total_page:
+                        type: integer
+                        example: 6
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 100
+                      sort:
+                        type: string
+                        example: id
+                        enum:
+                          - id
+                          - dtm_crt
+                          - dtm_upd
+                      order:
+                        type: string
+                        example: asc
+                        enum:
+                          - asc
+                          - desc
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Consumer
+      summary: Add consumer (BACKOFFICE)
+      description: Add consumer from backoffice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestCreateConsumer'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /consumer/{id}:
+    get:
+      tags:
+        - Consumer
+      summary: Get recruiter details (BACKOFFICE)
+      description: Get recruiter details from backoffice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recruiter ID
+          schema:
+            type: integer 
+      responses:
+        '200':
+          description: Success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /credit-card:
+    get:
+      tags:
+        - CreditCard
+      summary: Get credit-card list (BACKOFFICE)
+      description: Get credit-card list from backoffice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit
+          schema:
+            type: integer
+        - name: card_number
+          in: query
+          description: Search card_number
+          schema:
+            type: string
+        - name: expiration_date
+          in: query
+          description: Search expiration_date
+          schema:
+            type: string
+        - name: credit_limit
+          in: query
+          description: Search credit_limit
+          schema:
+            type: string
+        - name: current_balance
+          in: query
+          description: Search current_balance
+          schema:
+            type: string                    
+        - name: sort
+          in: query
+          description: Sort by
+          schema:
+            type: string
+            enum:
+              - dtm_crt
+              - dtm_upd
+        - name: order
+          in: query
+          description: Order (ascending or descending)
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    properties:                      
+                      total_data:
+                        type: integer
+                        example: 543
+                      total_page:
+                        type: integer
+                        example: 6
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 100
+                      sort:
+                        type: string
+                        example: id
+                        enum:
+                          - id
+                          - dtm_crt
+                          - dtm_upd
+                      order:
+                        type: string
+                        example: asc
+                        enum:
+                          - asc
+                          - desc
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - CreditCard
+      summary: Add credit-card (BACKOFFICE)
+      description: Add credit-card from backoffice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestCreateConsumerCreditCard'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /credit-card/{id}:
+    get:
+      tags:
+        - CreditCard
+      summary: Get recruiter details (BACKOFFICE)
+      description: Get recruiter details from backoffice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Recruiter ID
+          schema:
+            type: integer 
+      responses:
+        '200':
+          description: Success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'          
+  /transaction/credit:
+    post:
+      tags:
+        - CreditCard
+      summary: Add transaction credit-card 
+      description: add transaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RequestCreateConsumerTransactionCreditCard'
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /billing:
+    patch:
+      tags:
+        - Billing
+      summary: Pay installment recruiter details
+      description: Pay installment details 
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID
+          schema:
+            type: integer 
+      responses:
+        '200':
+          description: Success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - Billing
+      summary: Get Billing list 
+      description: Get Billing list from backoffice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: Limit
+          schema:
+            type: integer
+        - name: bill_amount
+          in: query
+          description: Search billing_amount
+          schema:
+            type: string
+        - name: due_date
+          in: query
+          description: Search due_date salary
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Search status
+          schema:
+            type: string        
+        - name: sort
+          in: query
+          description: Sort by
+          schema:
+            type: string
+            enum:
+              - dtm_crt
+              - dtm_upd
+        - name: order
+          in: query
+          description: Order (ascending or descending)
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    properties:                      
+                      total_data:
+                        type: integer
+                        example: 543
+                      total_page:
+                        type: integer
+                        example: 6
+                      page:
+                        type: integer
+                        example: 1
+                      limit:
+                        type: integer
+                        example: 100
+                      sort:
+                        type: string
+                        example: id
+                        enum:
+                          - id
+                          - dtm_crt
+                          - dtm_upd
+                      order:
+                        type: string
+                        example: asc
+                        enum:
+                          - asc
+                          - desc
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  schemas:
+    RequestLogin:
+      type: object
+      properties:
+        phone_number:
+          type: string
+          description: Mobile phone number
+        email:
+          type: string
+          description: Email
+        is_admin:
+          type: boolean
+          description: isAdmin
+        user_name:
+          type: string
+          description: UserName
+        password:
+          type: string
+          description: Password  
+    RequestCreateConsumer:
+      type: object
+      properties:
+        nik:
+          type: string
+          description: NIK
+        name:
+          type: string
+          description: Name based on ID card
+        birth_date:
+          type: string
+          format: date
+          description: Date of birth
+        place_of_birth:
+          type: string
+          description: Place Of Birth
+        phone_number:
+          type: string
+          description: Phone Number
+        email:
+          type: string
+          description: Email (optional)
+        salary:
+          type: string
+          description: Salary
+      required:
+        - nik
+        - name
+        - birth_date
+        - place_of_birth
+        - phone_number
+        - salary
+    RequestCreateConsumerCreditCard:
+      type: object
+      properties:
+        nik:
+          type: string
+          description: nik consumer
+        request_limit:
+          type: string
+          description: request_limit
+      required:
+        - nik
+        - request_limit
+    RequestCreateConsumerTransactionCreditCard:
+      type: object
+      properties:
+        product_type:
+          type: string
+          description: product_type consumer
+        cvv:
+          type: string
+          description: cvv consumer
+        purchase_amount:
+          type: string
+          description: purchase_amount
+        installment_count:
+          type: string
+          description: installment_count consumer
+        asset_name:
+          type: string
+          description: asset_name
+      required:
+        - product_type
+        - purchase_amount
+        - installment_count
+        - asset_name
+        - cvv
+    
+    ResponseLogin:
+      type: object
+      properties:
+        token:
+          type: string
+        need_validation:
+          type: boolean
+        level:
+          type: integer
+        2fa_param:
+          type: string
+        question:
+          type: string
+      required:
+        - token
+    RequestGetConsumer:
+      type: object
+      properties:
+        birth_date:
+          type: string
+          format: date
+          description: Date of birth
+      required:
+        - birth_date
+    ResponseValidate:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+  responses:
+    Success:
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Success
+    Created:
+      description: Created
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Created
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Bad request
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Unauthorized
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Forbidden
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Not found
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: string
+            example: Internal server error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    oAuth2ClientCredentials:    # <---- arbitrary name
+      type: oauth2
+      description: This API uses OAuth 2 with the client credential flow. [More info](https://api.example.com/docs/auth)
+      flows:
+        clientCredentials:   # <---- OAuth flow(authorizationCode, implicit, password or clientCredentials)
+          tokenUrl: insurance/openapi/token
+          scopes:
+            write_clients: modify clients
